@@ -1,11 +1,11 @@
 pipeline {
     agent {
         node {
-            label "ROBOSHOP"
-        }
+            label 'roboshop' 
+        } 
     }
     environment {
-        COURSE = "JENKINS"
+        COURSE = "Jenkins"
     }
     options {
         disableConcurrentBuilds()
@@ -19,35 +19,64 @@ pipeline {
         password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
     }
     stages {
-        stage ('Build') {
+        stage('Build') {
             steps {
-                sh """
-                    echo "Building"
-                    echo $COURSE
-                    sleep 10
-                """
+                script{
+                    sh """
+                        echo "Building"
+                        echo $COURSE
+                        sleep 10
+                    """
+                }
             }
         }
-        stage ('Test') {
+        stage('Test') {
             steps {
-                sh """
-                    echo "Testing"
-                    echo $COURSE
-                    echo "Hello ${params.PERSON}"
-                    echo "Biography: ${params.BIOGRAPHY}"
-                    echo "Toggle: ${params.TOGGLE}"
-                    echo "Choice: ${params.DEPLOY}" 
-                    echo "Password: ${params.PASSWORD}"
-                """
+               script{
+                    sh """
+                        echo "Testing"
+                        echo "Hello ${params.PERSON}"
+                        echo "Biography: ${params.BIOGRAPHY}"
+                        echo "Toggle: ${params.TOGGLE}"
+                        echo "Choice: ${params.DEPLOY}" 
+                        echo "Password: ${params.PASSWORD}"
+                    """
                 }
+            }
         }
-        stage ('Deploy') {
-            steps {
-                sh """
-                    echo "Deploy"
-                    echo $COURSE
-                """
+        stage('Deploy') {
+            when {
+                expression { "${params.DEPLOY}" == "true" }
+            }
+
+            /* input {
+                message "Should we continue?"
+                ok "Yes, we should."
+                submitter "alice,bob"
+                parameters {
+                    string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
                 }
+            } */
+            steps {
+                script{
+                    sh """
+                        echo "Deploying"
+                    """
+                }
+            }
+        }
+    }
+
+    // post build
+    post { 
+        always { 
+            echo 'I will always say Hello again!'
+        }
+        success {
+            echo "pipeline success"
+        }
+        failure {
+            echo "pipeline failure"
         }
     }
 }
